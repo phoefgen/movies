@@ -1,38 +1,49 @@
 import fresh_tomatoes
 import media
+import urllib
+import json
+import re
+import yaml
 
-toy_story = media.Movie("Toy Story",
-						"A story about a boy and his toys that come to life",
-						"http://upload.wikimedia.org/wikipedia/en/1/13/Toy_Story.jpg",
-						"httpsL//www.youtube.com/watch?v=vwyZH85NQC4")
+
+movie_list = ["Toy Story", "The Big lebowski"]
+movie_object_list = []
 
 
-avengers = media.Movie("Avengers",
-					"The avengers fight Aliens.",
-					"http://interhost.hu/stuff/pics/posters/Avengers.jpg",
-					"https://www.youtube.com/watch?v=eOrNdBpGMv8")
+for movie in movie_list:
+    #generate API call that complies with API URLformat:
+    movie_name_string = movie.replace(" ","+")
+    movie_name_string = movie_name_string.lower()
 
-avatar = media.Movie("Avatar",
-					 "A marine on an alien planet.",
-					 "http://upload.wikimedia.org/wikipedia/id/b/b0/Avatar-Teaser-Poster.jpg",
-					 "http://ww.youtube.com/watch?v=-9ceBgWV8io")
+    '''create an API call, that collects text data for the movie'''
 
-school_of_rock = media.Movie("School of Rock",
-							 "An unemployed musician teaches children music",
-							 "https://upload.wikimedia.org/wikipedia/en/1/11/School_of_Rock_Poster.jpg",
-							 "https://www.youtube.com/watch?v=3PsUJFEBC74")
+    #create a connection to imdb api, get text data and poster data
+    api_call_text = urllib.urlopen("http://www.omdbapi.com/?t=" +
+                                    movie_name_string + "&y=&plot=short&r=json")
+    #pull the data into a dict
+    movie_data = json.loads(api_call_text.read())
+    
+    '''create an API call, that collects the movie trailer URL '''
+    #pull the movie trailer API from a random web service:
+    api_call_trailer = urllib.urlopen("http://trailersapi.com/trailers.json?movie="
+                                     + movie_name_string)
 
-ratatouille = media.Movie("Ratatouille",
-							 "A rat wants to be a chef",
-							 "http://upload.wikimedia.org/wikipedia/en/5/50/RatatouillePoster.jpg",
-							 "https://www.youtube.com/watch?v=c3sBBRxDAqk")
+    # Extract the URL from the HTML Formatted API call return:
+    trailer_data = json.loads(api_call_trailer.read())
+    movie_trailer_url = str(re.findall('(?:http://|www.)[^"\' ]+',
+                                    trailer_data[0]['code']))
+    movie_trailer_url = movie_trailer_url[3:-2]
 
-hunger_games = media.Movie("The Hunger Games",
-						   "A young girl needs to fight to the death.",
-						   "http://upload.wikimedia.org/wikipedia/en/4/42/HungerGamesPoster.jpg",
-						   "https://www.youtube.com/watch?v=PbA63a7H0bo")
+    ''' Build a movie object'''
+    #build a movie object. Build an object with the title name, add it 
+    #to a list of exisiting objects
+    movie_name_string = media.Movie(movie_data['Title'],
+                                    movie_data['Plot'],
+                                    movie_data['Poster'],
+                                    movie_trailer_url)
 
-movies = [toy_story, avengers, avatar, school_of_rock, ratatouille, hunger_games]
+    movie_object_list.append(movie_name_string)
 
-fresh_tomatoes.open_movies_page(movies)
+
+fresh_tomatoes.open_movies_page(movie_object_list)
 
