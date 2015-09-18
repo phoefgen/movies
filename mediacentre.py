@@ -6,7 +6,13 @@ import re
 import yaml
 
 
-movie_list = ["Toy Story", "The Big lebowski"]
+movie_list = ["The Avengers",
+             "The Dark Knight Rises",
+             "Man of Steel",
+              "Noah",
+              "Chappie",
+              "ted"]
+
 movie_object_list = []
 
 
@@ -26,13 +32,14 @@ for movie in movie_list:
     '''create an API call, that collects the movie trailer URL '''
     #pull the movie trailer API from a random web service:
     api_call_trailer = urllib.urlopen("http://trailersapi.com/trailers.json?movie="
-                                     + movie_name_string)
+                                     + movie_name_string.replace("+"," "))
 
     # Extract the URL from the HTML Formatted API call return:
     trailer_data = json.loads(api_call_trailer.read())
     movie_trailer_url = str(re.findall('(?:http://|www.)[^"\' ]+',
                                     trailer_data[0]['code']))
     movie_trailer_url = movie_trailer_url[3:-2]
+    movie_trailer_url = movie_trailer_url.replace("/embed/","/watch?v=")
 
     ''' Build a movie object'''
     #build a movie object. Build an object with the title name, add it 
